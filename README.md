@@ -1,2 +1,2 @@
 # tsmgen
-A script to renew Library devices 
+A script to renew drive devices 
