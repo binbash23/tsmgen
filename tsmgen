@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# 20200709 jens heine, benjamin heine
+#
+#
+
+#
+# VARIABLES
+#
+SN_FILENAME='tsm_sn_drivename'
+DEV_FILENAME='windows_devices'
+DEV_CLEAN_FILENAME='windows_devices_clean'
+COMMAND_FILE='commands.txt'
+
+#
+# MAIN
+#
+
+# erstelle cleane liste
+grep -Ev '0a|Changer' ${DEV_FILENAME} > ${DEV_CLEAN_FILENAME}
+
+# leere die command datei
+>${COMMAND_FILE}
+
+while read line; do
+	echo
+	echo "Reading line from sn file: ${line}"
+	SERIAL=`echo ${line}|awk '{print $1}'`
+	DRIVE_NAME=`echo ${line}|awk '{print $2}'`
+	echo "Serial number is: ${SERIAL} - Drive name is: ${DRIVE_NAME}"
+	DEV_FILE_LINE=`grep ${SERIAL} ${DEV_CLEAN_FILENAME}`
+	RET_VAL=$?
+	[ 0 -ne "$RET_VAL" ] && {
+		echo "No device entry found for serial (${SERIAL}). Skipping"	
+		continue
+	}
+	echo "Found device line in dev file: ${DEV_FILE_LINE}"
+	DEV_PATH=`echo "${DEV_FILE_LINE}"| awk '{print $3}'`
+	echo "Device path is: ${DEV_PATH}"
+	echo "Generating command: define path ${DRIVE_NAME} device=${DEV_PATH}"|tee -a ${COMMAND_FILE}
+done < ${SN_FILENAME}
+
+
